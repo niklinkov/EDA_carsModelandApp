@@ -32,6 +32,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.compose import ColumnTransformer
 from sklearn import metrics
+from pickle import dump, load
 
 CUR_YEAR = 2023
 
@@ -134,6 +135,58 @@ CUR_YEAR = 2023
 #   g.add_legend()
 # plot data
 # plot_data(df_4)
+# Settings
+# lists for model
+# target_feature = 'selling_price'  # target model
+# # lists of columns
+# # included in model
+# model_list = ['name', 'fuel', 'transmission', 'year', 'seats', 'km_driven',
+#               'seller_type', 'engine', 'engine_type', 'max_power', 'torque']
+# # not included
+# to_drop_list = ['selling_price', 'model', 'other', 'owner', 'mileage', 'mileage_scale',
+#                 'power_scale', 'torque_scale', 'rpm_value', 'rpm_scale']
+# #
+# categorical = ['name', 'fuel', 'seats', 'seller_type']
+# real_features = ['year', 'transmission', 'max_power', 'engine', 'engine_type', 'torque', 'km_driven']
+# split dataframe
+# X_data = df_4.drop(drop_list, axis=1)  # data for model
+# y_data = df_4[target_feature]  # target value
+# split dataset on test and train
+# X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.15, random_state=42)
+# X_train.shape, X_test.shape
+#
+# # encode categorical columns that isn't boolean
+# numeric_features = [col for col in X_data.columns if col not in categorical]
+# column_transformer = ColumnTransformer([
+#     ('ohe', OneHotEncoder(drop='first', handle_unknown="ignore", sparse_output=False), categorical),
+#     ('scaling', MinMaxScaler(), numeric_features)
+# ])
+#
+# X_train_transformed = column_transformer.fit_transform(X_train)
+# X_test_transformed = column_transformer.transform(X_test)
+#
+# lst = list(column_transformer.transformers_[0][1].get_feature_names_out())
+# lst.extend(numeric_features)
+#
+# X_train_transformed = pd.DataFrame(X_train_transformed, columns=lst)
+# X_test_transformed = pd.DataFrame(X_test_transformed, columns=lst)
+
+# X_train_transformed.head(3)
+
+# model = LinearRegression(fit_intercept=True)
+# model.fit(X_train, y_train)
+
+# test_preds = model.predict(X_test)
+# train_preds = model.predict(X_train)
+#
+# print(metrics.mean_squared_error(y_test, test_preds) ** 0.5)
+#
+#
+# print(mean_absolute_percentage_error(y_test, test_preds))
+#
+# print(metrics.mean_squared_error(y_train, train_preds) ** 0.5,
+#       metrics.mean_absolute_error(y_train, train_preds),
+#       mean_absolute_percentage_error(y_train, train_preds))
 
 
 # Get data function
@@ -142,8 +195,33 @@ def open_data(path="data/mvp_main_datasets_cars.csv"):
     return df_in
 
 
+# plot some graf
+def plot_data(df_in: pd.DataFrame):
+    sns.histplot(df_in['selling_price'], kde=True)
+    plt.show()
+
+    sns.barplot(x='engine', y='selling_price', data = df_in, palette='summer', )
+    plt.title('engine - selling_price')
+    plt.xticks(rotation='vertical')
+    plt.show()
+
+    corr = df_in[['selling_price', 'year', 'km_driven', 'mileage', 'engine', 'max_power', 'torque', 'rpm_value']].corr()
+    sns.heatmap(corr, cmap="crest")
+    sns.heatmap(corr, annot=True)
+
+    return df_in
+
+
+# Split data
+def split_data(df_in: pd.DataFrame, model_list, target_name):
+    y_data_in = df_in[target_name]
+    x_data_in = df_in[model_list]
+
+    return x_data_in, y_data_in
+
+
 # Preprocess data
-def preprocess_data(df: pd.DataFrame, test=True):
+def preprocess_data(df: pd.DataFrame, model_list, target_name, test=True):
     # split name to brand and model
     df[['name', 'model']] = df['name'].str.split(' ', n=1, expand=True)
     df[['model', 'other']] = df['model'].str.split(' ', n=1, expand=True)
@@ -217,127 +295,163 @@ def preprocess_data(df: pd.DataFrame, test=True):
                                df['max_power'])
     df['rpm_value'] = np.where(df['rpm_value'] == -1, df[df['rpm_value'] != -1]['rpm_value'].mean(),
                                df['rpm_value'])
+
+    if test:
+        x_df, y_df = split_data(df, model_list, target_name)
+    else:
+        x_df = df
+
+    if test:
+        return x_df, y_df
+    else:
+        return x_df
+
+
+def transform_xy(x_data_in, y_data_in, categorical_columns):
+    # Transform categorical columns to boolean
+    x_data_in.loc[:, 'transmission'] = x_data_in['transmission'].map({'Automatic': 1, 'Manual': 0})
+    x_data_in.loc[:, 'engine_type'] = x_data_in['engine_type'].map({'CC': 1, 'unknown': 0})
+    # split dataset on test and train
+    x_train, x_test, y_train, y_test = train_test_split(x_data_in, y_data_in, test_size=0.05, random_state=42)
+    x_train.shape, x_test.shape
+
+    # encode categorical columns that isn't boolean
+    numeric_features = [col for col in x_data_in.columns if col not in categorical_columns]
+    column_transformer = ColumnTransformer([
+        ('ohe', OneHotEncoder(drop='first', handle_unknown="ignore", sparse_output=False), categorical_columns),
+        ('scaling', MinMaxScaler(), numeric_features)
+    ])
+
+    x_train_transformed = column_transformer.fit_transform(x_train)
+    x_test_transformed = column_transformer.transform(x_test)
+
+    lst = list(column_transformer.transformers_[0][1].get_feature_names_out())
+    lst.extend(numeric_features)
+
+    x_train_transformed_listed = pd.DataFrame(x_train_transformed, columns=lst)
+    x_test_transformed_listed = pd.DataFrame(x_test_transformed, columns=lst)
+
+    return x_train_transformed_listed, x_test_transformed_listed, y_train, y_test
+
+
+def transform(x_data_in):
+    # split dataset on test and train
+    # x_train, x_test, y_train, y_test = train_test_split(x_data_in, y_data_in, test_size=0.15, random_state=42)
+    # x_train.shape, x_test.shape
+    # Transform categorical columns to boolean
+    x_data_in.loc[:, 'transmission'] = x_data_in['transmission'].map({'Automatic': 1, 'Manual': 0})
+    x_data_in.loc[:, 'engine_type'] = x_data_in['engine_type'].map({'CC': 1, 'unknown': 0})
+    to_encode = categorical
+    # encode categorical columns that isn't boolean
+    numeric_features = [col for col in x_data_in.columns if col not in to_encode]
+    column_transformer = ColumnTransformer([
+        ('ohe', OneHotEncoder(drop='first', handle_unknown="ignore", sparse_output=False), to_encode),
+        ('scaling', MinMaxScaler(), numeric_features)
+    ])
+
+    x_train_transformed = column_transformer.fit_transform(x_data_in)
+    # x_test_transformed = column_transformer.transform(x_test)
+    #
+    lst = list(column_transformer.transformers_[0][1].get_feature_names_out())
+    lst.extend(numeric_features)
+    #
+    df = pd.DataFrame(x_train_transformed, columns=lst)
+    # x_test_transformed_listed = pd.DataFrame(x_test_transformed, columns=lst)
+
     return df
 
 
-# Open data
-df_1 = open_data()
-
-# Fix and rebuild data
-df_4 = preprocess_data(df_1)
-
-
-# plot some graf
-def plot_data(df_in: pd.DataFrame):
-    sns.histplot(df_in['selling_price'], kde=True)
-    plt.show()
-
-    sns.barplot(x='engine', y='selling_price', data = df_in, palette='summer', )
-    plt.title('engine - selling_price')
-    plt.xticks(rotation='vertical')
-    plt.show()
-
-    corr = df_in[['selling_price', 'year', 'km_driven', 'mileage', 'engine', 'max_power', 'torque', 'rpm_value']].corr()
-    sns.heatmap(corr, cmap="crest")
-    sns.heatmap(corr, annot=True)
-
-    return df_in
-
-
-# Split data
-def split_data(df_in: pd.DataFrame, model_list, target_name):
-    y = df_in[target_name]
-    X = df_in[model_list]
-
-    return X, y
-
-
-def preprocess_data(df: pd.DataFrame, model_list, target_name, to_encode_list, test=True):
-    df.dropna(inplace=True)
-
-    if test:
-        X_df, y_df = split_data(df, model_list, target_name)
+# fit model and save it in file
+def fit_and_save_model(x_train_in, x_test_in, y_train_in, y_test_in, model_type, path="data/model_weights.mw"):
+    if model_type == 'Linear':
+        model = LinearRegression(fit_intercept=True)
+        model.fit(x_train_in, y_train_in)
+    # elif model_type == 'Forest':
+    #     model = RandomForestClassifier()
+    #     model.fit(X_df, y_df)
     else:
-        X_df = df
+        print('Wrong solver name')
 
-    for col in to_encode_list:
-        dummy = pd.get_dummies(X_df[col], prefix=col)
-        X_df = pd.concat([X_df, dummy], axis=1)
-        X_df.drop(col, axis=1, inplace=True)
+    # Main model metric R^2
+    score = model.score(x_test_in, y_test_in).round(3)
+    print(f"Model score is {score}")
 
-    if test:
-        return X_df, y_df
+    test_preds = model.predict(x_test_in)
+    # train_preds = model.predict(X_train)
+
+    # ********************    test how it works     ***************
+    prediction = model.predict(x_test_in)[0]
+    # prediction = np.squeeze(prediction)
+    print(x_test_in.head(1))
+    print("Selling_price", prediction)
+
+    # prediction_proba = model.predict_proba(X_test)[0]
+    # print("Prediction probability:", prediction_proba)
+    # ************************* end block ***************************
+
+    mean_error = metrics.mean_squared_error(y_test_in, test_preds) ** 0.5
+
+    print(f"Mean squared error regression loss: {mean_error}")
+    print(f"Mean absolute percentage error: {mean_absolute_percentage_error(y_test_in, test_preds)}")
+
+    # print("Train metrics:", metrics.mean_squared_error(y_train, train_preds) ** 0.5,
+    #       metrics.mean_absolute_error(y_train, train_preds),
+    #       mean_absolute_percentage_error(y_train, train_preds))
+
+    with open(path, "wb") as file:
+        dump(model, file)
+
+    print(f"Model was saved to {path}")
+
+    return mean_error
+
+
+def load_model_and_predict(df, selling_price, path="data/model_weights.mw"):
+    with open(path, "rb") as file:
+        model = load(file)
+
+    prediction = model.predict(df)[0]
+    recommendation = selling_price
+    hi_price = (prediction + mean_error)
+    low_price = (prediction - mean_error)
+
+    if hi_price < selling_price:
+        recommendation = "too high"
+    elif low_price > selling_price:
+        recommendation = "too low"
     else:
-        return X_df
+        recommendation = "good"
 
-
-# Create data set for model
-# full list of columns
-# ['selling_price', 'name', 'model', 'other', 'fuel', 'transmission', 'year', 'seats', 'km_driven',
-#  'seller_type', 'owner', 'mileage', 'mileage_scale', 'engine', 'engine_type', 'max_power', 'power_scale',
-#  'torque', 'torque_scale', 'rpm_value', 'rpm_scale']
-
-# lists for model
-target_feature = 'selling_price'  # target model
-# lists of columns
-# included in model
-model_list = ['name', 'fuel', 'transmission', 'year', 'seats', 'km_driven',
-              'seller_type', 'engine', 'engine_type', 'max_power', 'torque']
-# not included
-drop_list = ['selling_price', 'model', 'other', 'owner', 'mileage', 'mileage_scale',
-             'power_scale', 'torque_scale', 'rpm_value', 'rpm_scale']
-#
-categorical = ['name', 'fuel', 'seats', 'seller_type']
-real_features = ['year', 'transmission', 'max_power', 'engine', 'engine_type', 'torque', 'km_driven']
-
-# split dataframe
-X_data = df_4.drop(drop_list, axis=1)  # data for model
-y_data = df_4[target_feature]  # target value
-
-#
-X_data['transmission'] = X_data['transmission'].map({'Automatic': 1, 'Manual': 0})
-X_data['engine_type'] = X_data['engine_type'].map({'CC': 1, 'unknown': 0})
-
-
-X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.15, random_state=42)
-X_train.shape, X_test.shape
-
-# categorical = categorial_features
-numeric_features = [col for col in X_train.columns if col not in categorical]
-
-column_transformer = ColumnTransformer([
-    ('ohe', OneHotEncoder(drop='first', handle_unknown="ignore", sparse_output=False), categorical),
-    ('scaling', MinMaxScaler(), numeric_features)
-])
-
-X_train_transformed = column_transformer.fit_transform(X_train)
-X_test_transformed = column_transformer.transform(X_test)
-
-lst = list(column_transformer.transformers_[0][1].get_feature_names_out())
-lst.extend(numeric_features)
-
-X_train_transformed = pd.DataFrame(X_train_transformed, columns=lst)
-X_test_transformed = pd.DataFrame(X_test_transformed, columns=lst)
-
-# X_train_transformed.head(3)
-
-model = LinearRegression(fit_intercept=True)
-model.fit(X_train_transformed, y_train)
-
-model.score(X_test_transformed, y_test).round(3)
-
-test_preds = model.predict(X_test_transformed)
-train_preds = model.predict(X_train_transformed)
-
-print(metrics.mean_squared_error(y_test, test_preds) ** 0.5)
+    return prediction, recommendation, hi_price, low_price
 
 
 def mean_absolute_percentage_error(y_true, y_pred):
     return 100 * (np.abs(y_true - y_pred) / y_true).mean()
 
 
-print(mean_absolute_percentage_error(y_test, test_preds))
+# Open data
+df_1 = open_data()
 
-print(metrics.mean_squared_error(y_train, train_preds) ** 0.5,
-      metrics.mean_absolute_error(y_train, train_preds),
-      mean_absolute_percentage_error(y_train, train_preds))
+# Settings
+# lists for model
+target_feature = 'selling_price'  # target model
+# lists of columns
+# included in model
+to_model_list = ['name', 'fuel', 'transmission', 'year', 'seats', 'km_driven',
+                 'seller_type', 'engine', 'engine_type', 'max_power', 'torque']
+# not included
+to_drop_list = ['selling_price', 'model', 'other', 'owner', 'mileage', 'mileage_scale',
+                'power_scale', 'torque_scale', 'rpm_value', 'rpm_scale']
+#
+categorical = ['name', 'fuel', 'seats', 'seller_type']
+real_features = ['year', 'transmission', 'max_power', 'engine', 'engine_type', 'torque', 'km_driven']
+
+x_data, y_data = preprocess_data(df_1, to_model_list, target_feature,)
+
+# Fix and rebuild data and then Create data set for model
+X_train, X_test, y_train, y_test = transform_xy(x_data, y_data,  categorical)
+
+# initialize and save model
+mean_error = fit_and_save_model(X_train, X_test, y_train, y_test, model_type='Linear')
+
+# prediction, prediction_probas = load_model_and_predict()
