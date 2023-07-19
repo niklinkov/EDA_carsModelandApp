@@ -36,158 +36,6 @@ from pickle import dump, load
 
 CUR_YEAR = 2023
 
-# df.head(3)
-
-# Data analyse
-# Dataset size and information
-# df.shape
-# df.info()
-
-# Numeric columns
-# df.describe()
-
-# Object columns
-# df.describe(include='object')
-
-# df_1 = df[:]
-# df_1[['name', 'model']] = df['name'].str.split(' ', n=1, expand=True)
-# df_1[['model', 'other']] = df_1['model'].str.split(' ', n=1, expand=True)
-# df_1.head(3)
-# df_1['seats'].fillna(0.0, inplace=True)
-# df_1['seats'] = df_1['seats'].astype('object')
-# df_1['mileage'].fillna("-1 unknown", inplace=True)
-# df_1['engine'].fillna("-1 unknown", inplace=True)
-# df_1['max_power'].fillna("-1 unknown", inplace=True)
-# df_1['max_power'] = np.where(df_1['max_power'] == '0', '0 bhp', df_1['max_power'])
-# df_1['torque'].fillna("-1 Nm -1 rpm", inplace=True)
-# df_1['engine'].fillna("-1 unknown", inplace=True)
-#
-# df_1['max_power'].fillna("-1 unknown", inplace=True)
-# df_1['max_power'] = np.where(df_1['max_power'] == '0', '0 bhp', df_1['max_power'])
-#
-# df_1['torque'].fillna("-1 Nm -1 rpm", inplace=True)
-
-# df_2 = df_1[:]
-#
-# df_2['torque'] = np.where(df_2['torque'] == '380Nm(38.7kgm)@ 2500rpm', '380 Nm 2500 rpm', df_2['torque'])
-# df_2['torque'] = np.where(df_2['torque'] == '250@ 1250-5000rpm', '250 Nm 5000 rpm	', df_2['torque'])
-# df_2['torque'] = np.where(df_2['torque'] == '510@ 1600-2400', '510 Nm 2400 rpm	', df_2['torque'])
-# df_2['torque'] = np.where(df_2['torque'] == '48@ 3,000+/-500(NM@ rpm)', '48 Nm 3000 rpm	', df_2['torque'])
-# df_2['torque'] = np.where(df_2['torque'] == '210 / 1900', '210 Nm 1900 rpm	', df_2['torque'])
-#
-# df_2['torque'] = df_2['torque'].str.replace(r"[nN][Mm][@]", " Nm", regex=True)  # заменить nM@ NM@ Nm@ nm@ на Nm
-# df_2['torque'] = df_2['torque'].str.replace(r"[nN][mM]", " Nm", regex=True)
-# df_2['torque'] = df_2['torque'].str.replace(r",", "", regex=True)  # убрать ,
-# df_2['torque'] = df_2['torque'].str.replace(r"at", "", regex=True)  # убрать at
-# df_2['torque'] = df_2['torque'].str.replace(r"[0-9]+[-~]", "", regex=True)  # убрать первую половину значения rpm
-# df_2['torque'] = df_2['torque'].str.replace("\+/-[0-9]+", " ", regex=True)  # убрать записи +/-500 и им подобные
-# df_2['torque'] = df_2['torque'].str.replace(r'\(kgm[@ ]+rpm\)', " krpm ", regex=True)  # заменить скобки на krpm
-#
-# df_2['torque'] = df_2['torque'].str.replace(" /", " ", regex=True)  # убираем / из текста
-# df_2['torque'] = df_2['torque'].str.replace(r"KGM", " kgm ", regex=True)  # приведем к одному виду
-# df_2['torque'] = df_2['torque'].str.replace(r"RPM", "rpm", regex=True)  # приведем к одному виду
-# df_2['torque'] = df_2['torque'].str.replace(r"kgm@ ", " kgm ", regex=True)  # уберем знак @ и добавим пробел
-# df_2['torque'] = df_2['torque'].str.replace(r"@ ", " kgm ", regex=True)  # убираем знак @ из оставшихся записей
-# df_2['torque'] = df_2['torque'].str.replace("krpm", " rpm", regex=False)  # приведем rpm к одному виду
-# df_2['torque'] = df_2['torque'].str.replace("rpm", " rpm", regex=False)
-# df_2['torque'] = df_2['torque'].str.replace("  ", " ", regex=False)  # уберем двойные пробелы
-# df_2['torque'] = df_2['torque'].str.replace("  ", " ", regex=False)  # one more time
-
-# df_3 = df_2[:]
-# df_3[['mileage', 'mileage_scale']] = df_3['mileage'].str.split(' ', n=1, expand=True)
-# df_3[['engine', 'engine_type']] = df_3['engine'].str.split(' ', n=1, expand=True)
-# df_3[['max_power', 'power_scale']] = df_3['max_power'].str.split(' ', n=1, expand=True)
-# df_3[['torque', 'torque_scale']] = df_3['torque'].str.split(' ', n=1, expand=True)
-# df_3[['torque_scale', 'rpm_value']] = df_3['torque_scale'].str.split(' ', n=1, expand=True)
-
-# df_3['rpm_value'].fillna("-1 rpm", inplace=True)
-#
-# df_3[['rpm_value', 'rpm_scale']] = df_3['rpm_value'].str.split(' ', n=1, expand=True)
-# df_3['rpm_scale'].fillna("rpm", inplace=True)
-# df_3['rpm_value'] = df_3['rpm_value'].astype('float')
-
-# df_4 = df_3[['selling_price', 'name', 'model', 'other', 'fuel', 'transmission', 'year', 'seats', 'km_driven',
-#              'seller_type', 'owner', 'mileage', 'mileage_scale', 'engine', 'engine_type', 'max_power', 'power_scale',
-#              'torque', 'torque_scale', 'rpm_value', 'rpm_scale']]
-# df_4['max_power'] = np.where(df_4['max_power'] == '', 0, df_4['max_power'])
-# df_4['mileage'] = df_4['mileage'].astype('float')
-# df_4['engine'] = df_4['engine'].astype('int')
-# df_4['max_power'] = df_4['max_power'].astype('float')
-# df_4['torque'] = df_4['torque'].astype('float')
-#
-# df_4['torque'] = np.where((df_4['torque_scale'] == 'kgm'), df_4['torque'] * 9.8, df_4['torque'])
-#
-# df_4['torque'] = np.where(df_4['torque'] == -1, df_4[df_4['torque'] != -1]['torque'].mean(), df_4['torque'])
-#
-# df_4['mileage'] = np.where(df_4['mileage'] == -1, df_4[df_4['mileage'] != -1]['mileage'].mean(), df_4['mileage'])
-# df_4['engine'] = np.where(df_4['engine'] == -1, df_4[df_4['engine'] != -1]['engine'].mean(), df_4['engine'])
-# df_4['max_power'] = np.where(df_4['max_power'] == -1, df_4[df_4['max_power'] != -1]['max_power'].mean(),
-#                              df_4['max_power'])
-# df_4['rpm_value'] = np.where(df_4['rpm_value'] == -1, df_4[df_4['rpm_value'] != -1]['rpm_value'].mean(),
-#                              df_4['rpm_value'])
-
-# for hue in categorial_features:
-#   g = sns.PairGrid(df_4[['year', 'engine', 'max_power', 'selling_price', hue]], hue=hue, diag_sharey=False, height=4)
-#   g.map_lower(sns.kdeplot, alpha=0.6, warn_singular=False)
-#   g.map_upper(plt.scatter, alpha=0.3)
-#   g.map_diag(sns.kdeplot, lw=3, alpha=0.6, warn_singular=False,
-#              common_norm=False)  # каждая плотность по отдельности должна давать 1 при интегрировании
-#   g.add_legend()
-# plot data
-# plot_data(df_4)
-# Settings
-# lists for model
-# target_feature = 'selling_price'  # target model
-# # lists of columns
-# # included in model
-# model_list = ['name', 'fuel', 'transmission', 'year', 'seats', 'km_driven',
-#               'seller_type', 'engine', 'engine_type', 'max_power', 'torque']
-# # not included
-# to_drop_list = ['selling_price', 'model', 'other', 'owner', 'mileage', 'mileage_scale',
-#                 'power_scale', 'torque_scale', 'rpm_value', 'rpm_scale']
-# #
-# categorical = ['name', 'fuel', 'seats', 'seller_type']
-# real_features = ['year', 'transmission', 'max_power', 'engine', 'engine_type', 'torque', 'km_driven']
-# split dataframe
-# X_data = df_4.drop(drop_list, axis=1)  # data for model
-# y_data = df_4[target_feature]  # target value
-# split dataset on test and train
-# X_train, X_test, y_train, y_test = train_test_split(X_data, y_data, test_size=0.15, random_state=42)
-# X_train.shape, X_test.shape
-#
-# # encode categorical columns that isn't boolean
-# numeric_features = [col for col in X_data.columns if col not in categorical]
-# column_transformer = ColumnTransformer([
-#     ('ohe', OneHotEncoder(drop='first', handle_unknown="ignore", sparse_output=False), categorical),
-#     ('scaling', MinMaxScaler(), numeric_features)
-# ])
-#
-# X_train_transformed = column_transformer.fit_transform(X_train)
-# X_test_transformed = column_transformer.transform(X_test)
-#
-# lst = list(column_transformer.transformers_[0][1].get_feature_names_out())
-# lst.extend(numeric_features)
-#
-# X_train_transformed = pd.DataFrame(X_train_transformed, columns=lst)
-# X_test_transformed = pd.DataFrame(X_test_transformed, columns=lst)
-
-# X_train_transformed.head(3)
-
-# model = LinearRegression(fit_intercept=True)
-# model.fit(X_train, y_train)
-
-# test_preds = model.predict(X_test)
-# train_preds = model.predict(X_train)
-#
-# print(metrics.mean_squared_error(y_test, test_preds) ** 0.5)
-#
-#
-# print(mean_absolute_percentage_error(y_test, test_preds))
-#
-# print(metrics.mean_squared_error(y_train, train_preds) ** 0.5,
-#       metrics.mean_absolute_error(y_train, train_preds),
-#       mean_absolute_percentage_error(y_train, train_preds))
-
 
 # Get data function
 def open_data(path="data/mvp_main_datasets_cars.csv"):
@@ -200,7 +48,7 @@ def plot_data(df_in: pd.DataFrame):
     sns.histplot(df_in['selling_price'], kde=True)
     plt.show()
 
-    sns.barplot(x='engine', y='selling_price', data = df_in, palette='summer', )
+    sns.barplot(x='engine', y='selling_price', data=df_in, palette='summer', )
     plt.title('engine - selling_price')
     plt.xticks(rotation='vertical')
     plt.show()
@@ -231,12 +79,6 @@ def preprocess_data(df: pd.DataFrame, model_list, target_name, test=True):
     df['engine'].fillna("-1 unknown", inplace=True)
     df['max_power'].fillna("-1 unknown", inplace=True)
     df['torque'].fillna("-1 Nm -1 rpm", inplace=True)
-    # df['engine'].fillna("-1 unknown", inplace=True)
-    # df['torque'].fillna("-1 Nm -1 rpm", inplace=True)
-    # df['max_power'].fillna("-1 unknown", inplace=True)
-    # df['max_power'] = np.where(df['max_power'] == '0', '0 bhp', df['max_power'])
-    # fix data in columns
-    # max_power
     df['max_power'] = np.where(df['max_power'] == '0', '0 bhp', df['max_power'])
     # torque
     df['torque'] = np.where(df['torque'] == '380Nm(38.7kgm)@ 2500rpm', '380 Nm 2500 rpm', df['torque'])
@@ -277,7 +119,6 @@ def preprocess_data(df: pd.DataFrame, model_list, target_name, test=True):
     # df = df[['selling_price', 'name', 'model', 'other', 'fuel', 'transmission', 'year', 'seats', 'km_driven',
     #          'seller_type', 'owner', 'mileage', 'mileage_scale', 'engine', 'engine_type', 'max_power', 'power_scale',
     #          'torque', 'torque_scale', 'rpm_value', 'rpm_scale']]
-
     # change columns types
     df['mileage'] = df['mileage'].astype('float')
     df['engine'] = df['engine'].astype('int')
@@ -350,13 +191,11 @@ def transform(x_data_in):
     ])
 
     x_train_transformed = column_transformer.fit_transform(x_data_in)
-    # x_test_transformed = column_transformer.transform(x_test)
     #
     lst = list(column_transformer.transformers_[0][1].get_feature_names_out())
     lst.extend(numeric_features)
     #
     df = pd.DataFrame(x_train_transformed, columns=lst)
-    # x_test_transformed_listed = pd.DataFrame(x_test_transformed, columns=lst)
 
     return df
 
@@ -366,9 +205,7 @@ def fit_and_save_model(x_train_in, x_test_in, y_train_in, y_test_in, model_type,
     if model_type == 'Linear':
         model = LinearRegression(fit_intercept=True)
         model.fit(x_train_in, y_train_in)
-    # elif model_type == 'Forest':
-    #     model = RandomForestClassifier()
-    #     model.fit(X_df, y_df)
+
     else:
         print('Wrong solver name')
 
@@ -381,22 +218,15 @@ def fit_and_save_model(x_train_in, x_test_in, y_train_in, y_test_in, model_type,
 
     # ********************    test how it works     ***************
     prediction = model.predict(x_test_in)[0]
-    # prediction = np.squeeze(prediction)
     print(x_test_in.head(1))
     print("Selling_price", prediction)
 
-    # prediction_proba = model.predict_proba(X_test)[0]
-    # print("Prediction probability:", prediction_proba)
     # ************************* end block ***************************
 
     mean_error = metrics.mean_squared_error(y_test_in, test_preds) ** 0.5
 
     print(f"Mean squared error regression loss: {mean_error}")
     print(f"Mean absolute percentage error: {mean_absolute_percentage_error(y_test_in, test_preds)}")
-
-    # print("Train metrics:", metrics.mean_squared_error(y_train, train_preds) ** 0.5,
-    #       metrics.mean_absolute_error(y_train, train_preds),
-    #       mean_absolute_percentage_error(y_train, train_preds))
 
     with open(path, "wb") as file:
         dump(model, file)
@@ -411,10 +241,18 @@ def load_model_and_predict(df, selling_price, path="data/model_weights.mw"):
         model = load(file)
 
     prediction = model.predict(df)[0]
-    recommendation = selling_price
-    hi_price = (prediction + mean_error)
-    low_price = (prediction - mean_error)
-
+    # recommendation = selling_price
+    # low_price
+    if (prediction - mean_error) < 0:
+        low_price = selling_price / 2
+    else:
+        low_price = (prediction - mean_error)
+    # hi_price
+    if (prediction + mean_error) < low_price:
+        hi_price = low_price
+    else:
+        hi_price = (prediction + mean_error)
+    # recommendation
     if hi_price < selling_price:
         recommendation = "too high"
     elif low_price > selling_price:
