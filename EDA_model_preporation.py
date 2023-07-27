@@ -35,7 +35,7 @@ from sklearn import metrics
 from pickle import dump, load
 
 CUR_YEAR = 2023
-SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL = True
+# SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL = True
 
 
 # Get data function
